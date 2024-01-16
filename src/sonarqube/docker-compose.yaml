@@ -1,0 +1,27 @@
+version: '3'
+services:
+  sonarqube:
+    image: nginx:latest
+    container_name: sonarqube
+    ports:
+      - '9000:9000'
+      - '9092:9092'
+    depends_on:
+      - database # Ensure the database service is started first
+    environment:
+      - DB_HOST=database # Use the service name as the database host
+      - DB_PORT=5432 # Example PostgreSQL port
+    networks:
+      - my_network # Attach the service to a user-defined network
+
+  # Database Service
+  database:
+    image: postgres:latest # Replace with the database image you want to use
+    environment:
+      POSTGRES_USER: sonar    
+      POSTGRES_PASSWORD: password1
+      POSTGRES_DB: sonarqube
+    networks:
+      - my_network # Attach the service to the same network as the webapp
+networks:
+  my_network:
