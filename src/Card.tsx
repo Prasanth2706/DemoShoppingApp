@@ -61,7 +61,6 @@ const Card: React.FC = () => {
       {
         productStore?.title?.map((data: any, index: number) => {
           const uniqueKey = data.id || `product_${index}`;
-
           return (
             <div
               className='card'
