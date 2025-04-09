@@ -6,7 +6,7 @@ const ProductList = () => {
   const { data, error, isLoading } = useProducts();
 
   if (isLoading) {
-    return <div>Loading...</div>; // Replace with skeleton loader later
+    return <div>Loading...</div>;
   }
 
   if (error) {

@@ -133,7 +133,7 @@ const Card: React.FC = () => {
               </div>
               <div className="mt-4">
                 <button
-                  className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition"
+                  className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition p-12 "
                   onClick={() => handleCart(data)}
                 >
                   Add to Cart

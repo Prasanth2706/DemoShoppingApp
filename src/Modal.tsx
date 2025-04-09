@@ -1,5 +1,5 @@
-import React from 'react';
-import './modal.css';
+import React from "react";
+import "./modal.css";
 
 interface ModalProps {
   isOpen: boolean;
@@ -8,16 +8,17 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, message, onClose }) => {
-  console.log('Modal rendered with isOpen:', isOpen); 
   if (!isOpen) {
     return null;
   }
 
   return (
-    <div className='modal'>
-      <div className='modal-content'>
-        <p>{message}</p>
-        <button onClick={onClose}>Close</button>
+    <div className="modal">
+      <div className="modal-content">
+        <p className="modal-message">{message}</p>
+        <button className="modal-button" onClick={onClose}>
+          Close
+        </button>
       </div>
     </div>
   );
