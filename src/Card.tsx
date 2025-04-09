@@ -28,13 +28,15 @@ const Card: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [favourites, setFavourites] = useState<Product[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1); // Current page
+  const itemsPerPage = 6; // Number of items per page
 
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`https://fakestoreapi.com/products`);
       const data: Product[] = await response.json();
-      setProducts(data);
+      setProducts(data); // Load all products at once
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -46,21 +48,36 @@ const Card: React.FC = () => {
     fetchProducts();
   }, []);
 
+  const handleCart = (data: Product) => {
+    productStore.handleCount();
+    const cartItem: any = {
+      name: data.title,
+      image: data?.image,
+      rate: data?.price,
+      description: data?.description,
+    };
+    productStore.cartstore = [...productStore.cartstore, cartItem];
+    toast.success(`${data.title} added to cart!`);
+  };
+
   const handleAddToFavourites = (product: Product) => {
-    setFavourites((prevFavourites) => {
-      if (!prevFavourites.some((fav) => fav.id === product.id)) {
-        toast.success(`${product.title} added to favourites!`);
-        return [...prevFavourites, product];
-      }
-      return prevFavourites;
-    });
+    if (!favourites.some((fav) => fav.id === product.id)) {
+      setFavourites([...favourites, product]);
+      toast.success(`${product.title} added to favourites!`);
+    }
   };
 
   const handleRemoveFromFavourites = (productId: number) => {
-    setFavourites((prevFavourites) =>
-      prevFavourites.filter((fav) => fav.id !== productId)
-    );
-    toast.info('Item removed from favourites.');
+    setFavourites(favourites.filter((fav) => fav.id !== productId));
+  };
+
+  // Pagination logic
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentProducts = products.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   if (isLoading && products.length === 0) {
@@ -83,9 +100,9 @@ const Card: React.FC = () => {
   return (
     <div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
-        {products.map((data) => (
+        {currentProducts.map((data) => (
           <div
-            key={data.id}
+            key={data.id} // Use a unique key for each product
             className="bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition-transform transform hover:scale-105"
           >
             <div
@@ -140,13 +157,30 @@ const Card: React.FC = () => {
               <div className="mt-4">
                 <button
                   className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition px-2"
-                  onClick={() => productStore.handleCount()}
+                  onClick={() => handleCart(data)}
                 >
                   Add to Cart
                 </button>
               </div>
             </div>
           </div>
+        ))}
+      </div>
+
+      {/* Pagination */}
+      <div className="pagination flex justify-center mt-6">
+        {Array.from({ length: totalPages }, (_, index) => (
+          <button
+            key={index}
+            className={`px-4 py-2 mx-1 rounded-md ${
+              currentPage === index + 1
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 text-gray-700'
+            } hover:bg-blue-400 hover:text-white transition`}
+            onClick={() => handlePageChange(index + 1)}
+          >
+            {index + 1}
+          </button>
         ))}
       </div>
 

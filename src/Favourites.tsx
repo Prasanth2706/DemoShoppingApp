@@ -52,7 +52,10 @@ const Favourites: React.FC<FavouritesProps> = ({ favourites, onRemove }) => {
                 </div>
                 <button
                   className="mt-4 w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition px-2"
-                  onClick={() => onRemove(fav.id)}
+                  onClick={() => {
+                    onRemove(fav.id);
+                    toast.info(`${fav.title} removed from favourites.`);
+                  }}
                 >
                   Remove from Favourites
                 </button>
