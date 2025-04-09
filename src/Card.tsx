@@ -4,6 +4,10 @@ import { observer } from 'mobx-react-lite';
 import './card.css';
 import productStore from './ApiStore';
 import ReactStars from 'react-rating-stars-component';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 type Product = {
   id: number;
@@ -18,32 +22,31 @@ type Product = {
   description?: string;
 };
 
-const fetchdata = async () => {
-  try {
-    const response = await fetch('https://fakestoreapi.com/products');
-    const data: Product[] = await response.json();
-    console.log(data, 'product-data');
-
-    productStore.title = data;
-  } catch (error) {
-    console.log('Error fetching data:', error);
-  }
-};
-
 const Card: React.FC = () => {
-  useEffect(() => {
-    fetchdata();
-  }, []);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const itemsPerPage = 10; // Number of items to fetch per page
 
-  const [liked, setLiked] = useState(false);
-  const toggleClick = (index: number) => {
-    setLiked(!liked);
-    setActiveItem(index);
+  const fetchProducts = async (page: number) => {
+    setIsLoading(true);
+    try {
+      const offset = (page - 1) * itemsPerPage;
+      const response = await fetch(
+        `https://fakestoreapi.com/products?limit=${itemsPerPage}&offset=${offset}`
+      );
+      const data: Product[] = await response.json();
+      setProducts((prevProducts) => [...prevProducts, ...data]); // Append new products
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const [activeItem, setActiveItem] = useState<number | undefined>();
-
-
+  useEffect(() => {
+    fetchProducts(currentPage);
+  }, [currentPage]);
 
   const handleCart = (data: Product) => {
     productStore.handleCount();
@@ -54,75 +57,100 @@ const Card: React.FC = () => {
       description: data?.description,
     };
     productStore.cartstore = [...productStore.cartstore, cartItem];
+    toast.success(`${data.title} added to cart!`);
   };
 
+  const loadMore = () => {
+    setCurrentPage((prevPage) => prevPage + 1);
+  };
+
+  if (isLoading && products.length === 0) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+        {[...Array(6)].map((_, index) => (
+          <div
+            key={index}
+            className="bg-white shadow-md rounded-lg p-4 animate-pulse"
+          >
+            <Skeleton height={200} className="rounded-md" />
+            <Skeleton height={20} width="80%" className="mt-4" />
+            <Skeleton height={20} width="60%" className="mt-2" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <>
-      {
-        productStore?.title?.map((data: any, index: number) => {
-          const uniqueKey = data.id || `product_${index}`;
-          return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+      {products.map((data, index) => {
+        const uniqueKey = data.id || `product_${index}`;
+        return (
+          <div
+            key={uniqueKey}
+            className="bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition-transform transform hover:scale-105"
+          >
             <div
-              className='card'
-              key={uniqueKey}
+              className="like-card absolute top-4 right-4 cursor-pointer"
+              onClick={() => {}}
             >
+              <FavoriteBorderIcon className="text-gray-400 text-2xl" />
+            </div>
+            <div className="prod-category text-sm text-gray-500 mb-2">
+              {data?.category}
+            </div>
+            <div className="prod-image">
+              <img
+                className="w-full h-48 object-cover rounded-md"
+                src={data?.image}
+                alt="product."
+              />
+            </div>
+            <div className="prod-info mt-4">
+              <div className="prod-title">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {data?.title}
+                </h3>
+              </div>
+              <div className="prod-price text-xl font-bold text-blue-600 mt-2">
+                ₹ {data?.price}
+              </div>
               <div
-                className='like-card'
-                onClick={() => toggleClick(index)}
+                className="prod-rating flex items-center mt-2"
+                style={{ display: 'flex', alignItems: 'center' }}
               >
-                <FavoriteBorderIcon
-                  data-testid='like-cards'
-                  className={activeItem === index ? (liked ? 'red' : '') : ''}
+                <ReactStars
+                  value={data?.rating?.rate}
+                  count={5}
+                  size={20}
+                  edit={false}
+                  half={true}
+                  activeColor="#ffac33"
                 />
-              </div>
-              <div className='prod-category'>
-                <p>{data?.category}</p>
-              </div>
-              <div className='prod-image'>
-                <img
-                  className='images'
-                  src={data?.image}
-                  alt='product.'
-                />
-              </div>
-              <div className='prod-info'>
-                <div className='prod-title'>
-                  <p>{data?.title}</p>
+                <div className="prod-count text-sm text-gray-500 pl-2">
+                  ({data?.rating.count})
                 </div>
-                <div className='prod-price'>₹ {data?.price}</div>
-                <div
-                  className='prod-rating'
-                  style={{ display: 'flex', alignItems: 'center' }}
+              </div>
+              <div className="mt-4">
+                <button
+                  className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition"
+                  onClick={() => handleCart(data)}
                 >
-                  <ReactStars
-                    value={data?.rating?.rate}
-                    count={5}
-                    size={25}
-                    edit={false}
-                    half={true}
-                    activeColor='#ffac33'
-                  />
-                  <div
-                    className='prod-count'
-                    style={{ paddingLeft: '8px' }}
-                  >
-                    <p>{data?.rating.count}</p>
-                  </div>
-                </div>
-                <div>
-                  <button
-                    className='add-to'
-                    onClick={() => handleCart(data)}
-                  >
-                    Add to Cart.
-                  </button>
-                </div>
+                  Add to Cart
+                </button>
               </div>
             </div>
-          );
-        }) as React.ReactNode
-      }
-    </>
+          </div>
+        );
+      })}
+      <button
+        className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition mt-4"
+        onClick={loadMore}
+        disabled={isLoading}
+      >
+        {isLoading ? 'Loading...' : 'Load More'}
+      </button>
+    </div>
   );
 };
 

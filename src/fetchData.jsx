@@ -1,35 +1,16 @@
 import { observer } from "mobx-react-lite";
-// import { useQuery } from "react-query";
-
 import useProducts from "./fetchProdData";
-// const fetchdata = async () => {
-//   try {
-//     const response = await fetch('https://fakestoreapi.com/products');
-//     const data = await response.json();
-//     return data;
-//   } catch (error) {
-//     console.log('Error fetching data:', error);
-//     return [];
-//   }
-// }
-
-// const fetchProducts = async () => {
-//   const response = await fetch('https://fakestoreapi.com/products');
-//   if (!response.ok) {
-//     throw new Error('Network response was not ok');
-//   }
-//   return response.json();
-// };
+import { toast } from "react-toastify";
 
 const ProductList = () => {
   const { data, error, isLoading } = useProducts();
-  // const { data, error, isLoading } = useQuery('products', fetchProducts);  
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading...</div>; // Replace with skeleton loader later
   }
 
   if (error) {
+    toast.error("Failed to fetch products!");
     return <div>Error: {error.message}</div>;
   }
 

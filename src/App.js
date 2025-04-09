@@ -8,17 +8,18 @@ function App(props) {
   return (
     <div className='app'>
       <MainHeader count={props.handleClick} />
-        <Routes>
-          <Route
-            path='/'
-            element={
-              <div className='card-row'>
-                <Card />
-              </div>
-            }
-          />
-          <Route path='/cart' element={<Cart />} />
-        </Routes>
+      <Routes>
+        <Route
+          path='/'
+          element={
+            // Removed the 'card-row' class to avoid conflicting styles
+            <div className='container mx-auto p-4'>
+              <Card />
+            </div>
+          }
+        />
+        <Route path='/cart' element={<Cart />} />
+      </Routes>
     </div>
   );
 }
