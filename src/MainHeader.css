@@ -1,12 +1,23 @@
 /* Default styles for larger screens */
 
 .header {
+  position: fixed; /* Make the header fixed at the top */
+  top: 0;
+  left: 0;
+  width: 100%; /* Full width of the screen */
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px;
+  background-color: #a4bfdd; /* Header background color */
   color: white;
-  background-color: #252424;
+  z-index: 1000; /* Ensure it stays above other elements */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add a shadow for a professional look */
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  cursor: pointer;
 }
 
 .header-buttons {
@@ -14,8 +25,7 @@
   gap: 10px;
 }
 
-.form-button,
-.cart-button {
+.header-buttons button {
   background-color: #28a745;
   color: white;
   border: none;
@@ -25,13 +35,12 @@
   font-size: 1rem;
 }
 
-.form-button:hover,
-.cart-button:hover {
+.header-buttons button:hover {
   background-color: #218838;
 }
 
-.shop:hover {
-  cursor: pointer;
+body {
+  padding-top: 60px; /* Add padding to avoid content being hidden under the fixed header */
 }
 
 @media (max-width: 768px) {

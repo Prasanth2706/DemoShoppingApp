@@ -8,18 +8,16 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, message, onClose }) => {
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div className="modal">
-      <div className="modal-content">
-        <p className="modal-message">{message}</p>
-        <button className="modal-button" onClick={onClose}>
-          Close
-        </button>
-      </div>
+    <div className={`modal ${isOpen ? "modal-open" : "modal-closed"}`}>
+      {isOpen && (
+        <div className="modal-content">
+          <p className="modal-message">{message}</p>
+          <button className="modal-button" onClick={onClose}>
+            Close
+          </button>
+        </div>
+      )}
     </div>
   );
 };

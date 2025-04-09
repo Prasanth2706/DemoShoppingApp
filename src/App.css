@@ -1,8 +1,9 @@
 body {
   margin: 0;
   font-family: "Roboto", Arial, sans-serif;
-  background: linear-gradient(120deg, #e0eafc, #cfdef3); 
+  background: linear-gradient(120deg, #e0eafc, #cfdef3); /* Background gradient */
   color: #333;
+  padding-top: 60px; /* Prevent content from being hidden under the fixed header */
 }
 
 .card-row {
