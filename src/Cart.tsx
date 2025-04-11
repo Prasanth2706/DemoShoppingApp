@@ -7,6 +7,12 @@ import { db } from './firebase';
 import useShoppingCart from './CartGroupItem';
 
 function Cart() {
+  // Initialize all hooks at the top level of your component
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [groupedDropdowns, setGroupedDropdowns] = useState<{
+    [itemName: string]: boolean;
+  }>({});
+  
   const { groupedCartItems, updateGroupedCartItems, removeFromCart } =
     useShoppingCart(productStore.cartstore);
 
@@ -20,11 +26,10 @@ function Cart() {
     0
   );
 
-  productStore.count = totalItemCount;
-
-  const [groupedDropdowns, setGroupedDropdowns] = useState<{
-    [itemName: string]: boolean;
-  }>({});
+  // Update store count
+  useEffect(() => {
+    productStore.count = totalItemCount;
+  }, [totalItemCount]);
 
   const toggleDropdown = (itemName: string) => {
     setGroupedDropdowns((prevState) => ({
@@ -32,11 +37,6 @@ function Cart() {
       [itemName]: !prevState[itemName] || false,
     }));
   };
-
-  const [isModalOpen, setModalOpen] = useState(false);
-  useEffect(() => {
-    console.log('Modal state updated:', isModalOpen);
-  }, [isModalOpen]);
   
   const buyItem = () => {
     if (groupedCartItems.length === 0) {
@@ -54,16 +54,16 @@ function Cart() {
       });
     });
 
-    // Clear the cart after placing the order
+    // Show the modal first
     setModalOpen(true);
+    
+    // Clear the cart after placing the order
     productStore.cartstore = [];
     updateGroupedCartItems([]);
-    productStore.count = 0;
+  };
 
-    // Show the modal
-
-    console.log('Modal state set to true'); // Debug log
-
+  const closeModal = () => {
+    setModalOpen(false);
   };
 
   const clearCart = () => {
@@ -108,54 +108,43 @@ function Cart() {
                   <div className='cart-price'>₹ {groupedItem.item?.rate}</div>
                   <div className='quan'>
                     <div className='quantity-container'>
-                      <div
-                        className='quantity'
-                        onClick={() => toggleDropdown(groupedItem.item?.name)}
+                      <button
+                        className='quantity-decrement'
+                        onClick={() => {
+                          const updatedItems = [...groupedCartItems];
+                          const itemIndex = updatedItems.findIndex(
+                            (item) => item.item.name === groupedItem.item?.name
+                          );
+                          if (itemIndex !== -1 && updatedItems[itemIndex].count > 1) {
+                            updatedItems[itemIndex].count -= 1; // Decrease quantity
+                            updateGroupedCartItems(updatedItems);
+                          }
+                        }}
                       >
-                        Qty: {groupedItem.count}
-                      </div>
-                      {groupedDropdowns[groupedItem.item?.name] && (
-                        <div className='dropdown-number'>
-                          {[...Array(10).keys()].map((value) => (
-                            <div
-                              className='dropdown-list'
-                              key={value}
-                              onClick={() => {
-                                const updatedItems = [...groupedCartItems];
-                                const itemIndex = updatedItems.findIndex(
-                                  (item) =>
-                                    item.item.name === groupedItem.item?.name
-                                );
-                                if (itemIndex !== -1) {
-                                  updatedItems[itemIndex].count = value + 1;
-                                  updateGroupedCartItems(updatedItems);
-                                  // Reset dropdown after selection
-                                  setGroupedDropdowns((prevState) => ({
-                                    ...prevState,
-                                    [groupedItem.item?.name]: false,
-                                  }));
-                                }
-                              }}
-                            >
-                              {value + 1}
-                            </div>
-                          ))}
-                          <div
-                            className='dropdown-delete'
-                            data-value={0}
-                            onClick={() => {
-                              removeFromCart(groupedItem.item?.name);
-                              // Reset dropdown after deletion
-                              setGroupedDropdowns((prevState) => ({
-                                ...prevState,
-                                [groupedItem.item?.name]: false,
-                              }));
-                            }}
-                          >
-                            0 (delete)
-                          </div>
-                        </div>
-                      )}
+                        -
+                      </button>
+                      <span className='quantity-display'>{groupedItem.count}</span>
+                      <button
+                        className='quantity-increment'
+                        onClick={() => {
+                          const updatedItems = [...groupedCartItems];
+                          const itemIndex = updatedItems.findIndex(
+                            (item) => item.item.name === groupedItem.item?.name
+                          );
+                          if (itemIndex !== -1) {
+                            updatedItems[itemIndex].count += 1; // Increase quantity
+                            updateGroupedCartItems(updatedItems);
+                          }
+                        }}
+                      >
+                        +
+                      </button>
+                      <button
+                        className='quantity-remove'
+                        onClick={() => removeFromCart(groupedItem.item?.name)}
+                      >
+                        Remove
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -174,13 +163,15 @@ function Cart() {
               </button>
             </div>
           </div>
-          <Modal
-            isOpen={isModalOpen}
-            message='Order Placed!'
-            onClose={() => setModalOpen(false)}
-            />
         </>
       )}
+      
+      {/* Always render the Modal component */}
+      <Modal
+        isOpen={isModalOpen}
+        message='Order Placed!'
+        onClose={closeModal}
+      />
     </div>
   );
 }
