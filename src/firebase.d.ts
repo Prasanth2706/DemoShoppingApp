@@ -1,5 +1,6 @@
-export declare module './firebase' {
-    // Add appropriate declarations for your module
-    export const db: any; // Replace 'any' with the actual type if possible
-  }
-  
+// // firebase.d.ts
+// import firebase from 'firebase/compat/app';
+
+// declare module './firebase' {
+//   export const db: firebase.firestore.Firestore;
+// }

@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import productStore from './ApiStore';
 import Modal from './Modal';
 import { db } from './firebase';
+import { collection, addDoc } from 'firebase/firestore';
 import useShoppingCart from './CartGroupItem';
 
 function Cart() {
@@ -38,28 +39,40 @@ function Cart() {
     }));
   };
   
-  const buyItem = () => {
+  const buyItem = async () => {
     if (groupedCartItems.length === 0) {
       alert('Your cart is empty!');
       return;
     }
 
-    groupedCartItems.forEach((item) => {
-      db.collection('posts').add({
-        name: item.item.name,
-        description: item.item.description || 'This is a product',
-        price: item.item.rate,
-        image: item.item.image,
-        itemCount: item.count,
-      });
-    });
+    try {
+      // Using the updated Firestore v9 syntax
+      const postsCollection = collection(db, 'posts');
+      
+      // Add each item to Firestore
+      const promises = groupedCartItems.map(item => 
+        addDoc(postsCollection, {
+          name: item.item.name,
+          description: item.item.description || 'This is a product',
+          price: item.item.rate,
+          image: item.item.image,
+          itemCount: item.count,
+          timestamp: new Date()
+        })
+      );
 
-    // Show the modal first
-    setModalOpen(true);
-    
-    // Clear the cart after placing the order
-    productStore.cartstore = [];
-    updateGroupedCartItems([]);
+      await Promise.all(promises);
+      
+      // Show the modal first
+      setModalOpen(true);
+      
+      // Clear the cart after placing the order
+      productStore.cartstore = [];
+      updateGroupedCartItems([]);
+    } catch (error) {
+      console.error("Error adding documents: ", error);
+      alert('Failed to place order. Please try again.');
+    }
   };
 
   const closeModal = () => {
@@ -169,7 +182,7 @@ function Cart() {
       {/* Always render the Modal component */}
       <Modal
         isOpen={isModalOpen}
-        message='Order Placed!'
+        message='Order Placed Successfully!'
         onClose={closeModal}
       />
     </div>
